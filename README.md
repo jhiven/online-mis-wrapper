@@ -12,9 +12,9 @@ This project was created purely for fun and as a way to improve my skills. It’
 
 ### What’s next?
 
-My ambition is to rewrite the backend in Golang and Rust then the two and decide which one is better.
+My ambition is to rewrite the backend in Golang and Rust to compare the two and decide which works better.
 
-## Getting Started
+## Run this project locally
 
 ### Installation on your machine
 
@@ -35,14 +35,6 @@ npm run dev
 Open the website at `http://localhost:5173`.
 
 ## Selfhost this project
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
 
 ### Docker Compose Deployment
 
