@@ -29,8 +29,6 @@ export class OnlineMisServiceHandler<T, U = undefined> {
     const cookie = session.get("PHPSESSID") ?? "";
     const res = await this._service.request({ cookie, ...data });
 
-    console.log(res.data);
-
     if (!this.validateOnlineMisSession(res.data)) {
       throw redirectDocument("/login", {
         headers: { "Set-Cookie": await destroySession(session) },

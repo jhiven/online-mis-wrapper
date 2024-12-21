@@ -77,7 +77,6 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 
   useEffect(() => {
     if (isRouteErrorResponse(error)) {
-      console.log("route error", error);
       setErrorState((prev) => ({
         ...prev,
         status: error.status === 404 ? "404" : "Error",
@@ -94,7 +93,6 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
         stack: import.meta.env.DEV ? error.stack : undefined,
       }));
     } else if (import.meta.env.DEV && error && error instanceof Error) {
-      console.error(errorState);
       setErrorState((prev) => ({
         ...prev,
         status: "Error",
