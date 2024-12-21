@@ -1,22 +1,22 @@
-# Welcome to React Router!
+# What is this?
 
-A modern, production-ready template for building full-stack React applications using React Router.
+It's a project that wraps [Online Mis PENS](https://online.mis.pens.ac.id) with an improved UI and UX. How does it work? First, you'll log in with your account. Once your account is validated, you'll receive a cookie, which is then encrypted and stored securely in your browser. With the cookie, we can make requests to any page on Online MIS PENS, extract the HTML response, and present it with a cleaner, more user-friendly interface.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+You can try this in here [https://pens.jhiven.my.id](https://pens.jhiven.my.id)
 
-## Features
+I don’t store any sensitive data on my server, so your information stays safe. If you’re still unsure, you can check the source code or just run this project locally.
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+### Why did I build this?
+
+This project was created purely for fun and as a way to improve my skills. It’s not meant to replace Online MIS PENS but to explore better design possibilities and learn new tech. For instance, this project uses the latest React Router v7 Framework Mode.
+
+### What’s next?
+
+My ambition is to rewrite the backend in Golang and Rust then the two and decide which one is better.
 
 ## Getting Started
 
-### Installation
+### Installation on your machine
 
 Install the dependencies:
 
@@ -24,17 +24,17 @@ Install the dependencies:
 npm install
 ```
 
-### Development
+### Start Development Server
 
-Start the development server with HMR:
+Start the development server with npm:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Open the website at `http://localhost:5173`.
 
-## Building for Production
+## Selfhost this project
 
 Create a production build:
 
@@ -43,6 +43,14 @@ npm run build
 ```
 
 ## Deployment
+
+### Docker Compose Deployment
+
+To build and run using Docker Compose:
+
+```bash
+docker compose up -d
+```
 
 ### Docker Deployment
 
@@ -70,6 +78,7 @@ docker run -p 3000:3000 my-app
 
 The containerized application can be deployed to any platform that supports Docker, including:
 
+- Your Own VPS
 - AWS ECS
 - Google Cloud Run
 - Azure Container Apps
@@ -91,10 +100,6 @@ Make sure to deploy the output of `npm run build`
 │   └── server/    # Server-side code
 ```
 
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
 ---
 
-Built with ❤️ using React Router.
+Built by Jhiven with ❤️.

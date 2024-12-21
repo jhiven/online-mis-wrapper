@@ -1,0 +1,13 @@
+services:
+  online-mis:
+    build:
+      context: ./
+      dockerfile: Dockerfile.pnpm 
+    restart: unless-stopped
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    external: true
+
