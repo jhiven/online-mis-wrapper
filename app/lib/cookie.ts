@@ -8,7 +8,7 @@ export const sessionStorage = createCookieSessionStorage<SessionData>({
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    secrets: [process.env.SESSION_SECRET ?? "lODSFhasdfdjf132afds_ljouoviu1"],
+    secrets: ["lODSFhasdfdjf132afds_ljouoviu1"],
   },
 });
 

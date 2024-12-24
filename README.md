@@ -2,17 +2,13 @@
 
 It's a project that wraps [Online Mis PENS](https://online.mis.pens.ac.id) with an improved UI and UX. How does it work? First, you'll log in with your account. Once your account is validated, you'll receive a cookie, which is then encrypted and stored securely in your browser. With the cookie, we can make requests to any page on Online MIS PENS, extract the HTML response, and present it with a cleaner, more user-friendly interface.
 
-You can try this in here [https://pens.jhiven.my.id](https://pens.jhiven.my.id)
-
-I don’t store any sensitive data on my server, so your information stays safe. If you’re still unsure, you can check the source code or just run this project locally.
-
 ### Why did I build this?
 
 This project was created purely for fun and as a way to improve my skills. It’s not meant to replace Online MIS PENS but to explore better design possibilities and learn new tech. For instance, this project uses the latest React Router v7 Framework Mode.
 
 ### What’s next?
 
-My ambition is to rewrite the backend in Golang and Rust to compare the two and decide which works better.
+My ambition is to rewrite the backend in Golang and Rust to compare the two and figure out which one works better.
 
 ## Run this project locally
 
