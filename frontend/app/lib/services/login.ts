@@ -3,6 +3,12 @@ import { wrapper } from "axios-cookiejar-support";
 import * as cheerio from "cheerio";
 import { CookieJar } from "tough-cookie";
 
+export type LoginResponseData = {
+  user: string;
+  nrp: string;
+  sessionId: string;
+};
+
 export async function loginCas({
   email,
   password,

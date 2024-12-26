@@ -1,4 +1,5 @@
 import type { Route } from "./+types/jadwal-kuliah";
+import { redirectDocument } from "react-router";
 import {
   Table,
   TableBody,
@@ -8,27 +9,57 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import TableYearSemester from "~/components/year-semester-select";
-import { JadwalKuliahService } from "~/lib/services/academic/jadwal-kuliah";
-import { OnlineMisServiceHandler } from "~/lib/services/shared/handler";
+import { destroySession, getSession, serializeCookies } from "~/lib/cookie";
+import type { JadwalKuliahData } from "~/lib/services/academic/jadwal-kuliah/type";
+import type {
+  ApiResponse,
+  SemesterLoaderType,
+} from "~/lib/services/shared/type";
 import { getCurrentYearAndSemester } from "~/lib/services/user-metadata";
+import { fetcher } from "~/lib/utils";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({
+  request,
+}: Route.LoaderArgs): Promise<SemesterLoaderType<JadwalKuliahData>> {
   const { searchParams } = new URL(request.url);
+  const session = await getSession(request.headers.get("Cookie"));
   const { semester, year } = getCurrentYearAndSemester({ searchParams });
+  searchParams.set("semester", semester.toString());
+  searchParams.set("year", year.toString());
 
-  const service = new JadwalKuliahService();
-  const handler = new OnlineMisServiceHandler(service);
-  const data = await handler.run(request, {
-    year,
-    semester,
+  const res = await fetcher({
+    url: "academic/jadwal",
+    options: {
+      method: "GET",
+      headers: { Cookie: serializeCookies(session.data) },
+    },
+    searchParams,
   });
 
-  return { data, semester, year };
+  const json = (await res.json()) as ApiResponse<JadwalKuliahData>;
+
+  if (!res.ok || json.message || !json.data) {
+    if (res.status === 401) {
+      const session = await getSession(request.headers.get("cookie"));
+      throw redirectDocument("/login", {
+        headers: { "Set-Cookie": await destroySession(session) },
+      });
+    }
+
+    return { error: json.message ?? "Terjadi kesalahan" };
+  }
+
+  return { success: { data: json.data, semester, year } };
 }
 
-export default function JadwalKuliah({
-  loaderData: { data, semester, year },
-}: Route.ComponentProps) {
+export default function JadwalKuliah({ loaderData }: Route.ComponentProps) {
+  if (loaderData.error || !loaderData.success) {
+    return (
+      <p className="text-center text-destructive text-lg">{loaderData.error}</p>
+    );
+  }
+  const { data, semester, year } = loaderData.success;
+
   const isTableEmpty = Object.values(data.table).every((v) => v.length === 0);
 
   return (

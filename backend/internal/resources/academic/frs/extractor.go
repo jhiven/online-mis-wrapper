@@ -98,10 +98,35 @@ func (e *FRSExtractor) Extract(r io.Reader) (*FRSData, error) {
 		}
 	})
 
-	batas, _ := strconv.Atoi(sks[0])
-	sisa, _ := strconv.Atoi(sks[2])
-	ipk, _ := strconv.ParseFloat(ip[0], 64)
-	ips, _ := strconv.ParseFloat(ip[2], 64)
+	var batas, sisa int
+	if len(sks) > 3 {
+		batas, _ = strconv.Atoi(sks[0])
+		sisa, _ = strconv.Atoi(sks[2])
+	}
+
+	var ipk, ips float64
+	if len(ip) > 3 {
+		ipk, _ = strconv.ParseFloat(ip[0], 64)
+		ips, _ = strconv.ParseFloat(ip[2], 64)
+	}
+
+	var fromPengisian, toPengisian string
+	if len(tanggalPengisian) > 1 {
+		fromPengisian = tanggalPengisian[0]
+		toPengisian = tanggalPengisian[1]
+	}
+
+	var fromPerubahan, toPerubahan string
+	if len(tanggalPerubahan) > 1 {
+		fromPerubahan = tanggalPerubahan[0]
+		toPerubahan = tanggalPerubahan[1]
+	}
+
+	var fromDrop, toDrop string
+	if len(tanggalDrop) > 1 {
+		fromDrop = tanggalDrop[0]
+		toDrop = tanggalDrop[1]
+	}
 
 	return &FRSData{
 		Dosen: dosen,
@@ -120,9 +145,9 @@ func (e *FRSExtractor) Extract(r io.Reader) (*FRSData, error) {
 			Ips: ips,
 		},
 		TanggalPenting: tanggalPenting{
-			Pengisian: dateRange{From: tanggalPengisian[0], To: tanggalPengisian[1]},
-			Perubahan: dateRange{From: tanggalPerubahan[0], To: tanggalPerubahan[1]},
-			Drop:      dateRange{From: tanggalDrop[0], To: tanggalDrop[1]},
+			Pengisian: dateRange{From: fromPengisian, To: toPengisian},
+			Perubahan: dateRange{From: fromPerubahan, To: toPerubahan},
+			Drop:      dateRange{From: fromDrop, To: toDrop},
 		},
 		SemesterListData: common.SemesterListData{Semester: semester, Year: year},
 		Table:            tbl,

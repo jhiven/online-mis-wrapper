@@ -12,16 +12,16 @@ export type FRSData = SemesterListData<{
   };
   tanggalPenting: {
     pengisian: {
-      from: Date;
-      to: Date;
+      from: string;
+      to: string;
     };
     perubahan: {
-      from: Date;
-      to: Date;
+      from: string;
+      to: string;
     };
     drop: {
-      from: Date;
-      to: Date;
+      from: string;
+      to: string;
     };
   };
   table: {

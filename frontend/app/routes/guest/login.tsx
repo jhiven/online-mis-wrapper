@@ -2,34 +2,42 @@ import type { Route } from "./+types/login";
 import { redirect } from "react-router";
 import { LoginForm } from "~/components/login-form";
 import { commitSession, getSession } from "~/lib/cookie";
-import { loginCas } from "~/lib/services/login";
+import type { LoginResponseData } from "~/lib/services/login";
+import type { ApiResponse } from "~/lib/services/shared/type";
+import { fetcher } from "~/lib/utils";
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
-  const { casCookie, user, error } = await loginCas({
-    email: form.get("email") as string,
-    password: form.get("password") as string,
+  const res = await fetcher({
+    url: "login",
+    options: {
+      method: "POST",
+      body: JSON.stringify(Object.fromEntries(form)),
+    },
   });
 
-  if (error) return { error };
-  if (!casCookie) return { error: "Gagal mendapatkan cookie" };
+  const json = (await res.json()) as ApiResponse<LoginResponseData>;
 
+  if (!res.ok || json.message || !json.data) {
+    return { error: json.message ?? "Terjadi kesalahan" };
+  }
+
+  const { nrp, user, sessionId } = json.data;
   const session = await getSession(request.headers.get("Cookie"));
-  session.set("PHPSESSID", casCookie[0].value);
+  session.set("nrp", nrp);
   session.set("user", user);
+  session.set("PHPSESSID", sessionId);
 
-  return redirect("/", {
+  throw redirect("/", {
     headers: { "Set-Cookie": await commitSession(session) },
   });
 }
 
 export default function LoginPage({ actionData }: Route.ComponentProps) {
-  const data = actionData as { error?: string } | undefined;
-
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm actionData={data} />
+        <LoginForm actionData={actionData} />
       </div>
     </div>
   );

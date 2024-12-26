@@ -29,13 +29,18 @@ func New(validate *validator.Validate, cache *redis.Client) *AuthHandler {
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) error {
-	nrp, err := r.Cookie("nrp")
-	if err != nil {
-		return errs.NewHTTPError(http.StatusUnauthorized, "Unauthorized", nil)
+	nrp, _ := r.Cookie("nrp")
+	slog.Info("Logging out user", "NRP", nrp.Value)
+
+	iter := h.cache.Scan(r.Context(), 0, fmt.Sprintf("*%v*", nrp.Value), 0).Iterator()
+	if iter.Err() != nil {
+		slog.Warn("Failed to delete cache user after logout", "NRP", nrp)
 	}
 
-	if err := h.cache.Del(r.Context(), fmt.Sprintf("*%s*", nrp)).Err(); err != nil {
-		slog.Warn("Failed to delete user session from redis", "Warning", err)
+	for iter.Next(r.Context()) {
+		if err := h.cache.Del(r.Context(), iter.Val()).Err(); err != nil {
+			slog.Warn("User session deleted")
+		}
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -83,11 +88,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	h.controller.client = client
 	data, err := h.controller.LoginCas(payload)
 	if err != nil {
-		return errs.NewHTTPError(
-			http.StatusInternalServerError,
-			"Failed to get sessionId from Cas",
-			err,
-		)
+		return err
 
 	}
 
@@ -103,6 +104,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) error {
 	if err := h.cache.Set(r.Context(), fmt.Sprintf("session:%s", data.NRP), true, exp).Err(); err != nil {
 		slog.Warn("Failed to set user session to redis", "Warning", err)
 	}
+
+	slog.Info("Logging in user", "NRP", data.NRP)
 
 	http.SetCookie(w, data.PHPSESSID)
 	http.SetCookie(w, data.UserCookie)

@@ -1,6 +1,6 @@
 import { createCookieSessionStorage } from "react-router";
 
-type SessionData = { PHPSESSID: string; user: string };
+type SessionData = { PHPSESSID: string; user: string; nrp: string };
 
 export const sessionStorage = createCookieSessionStorage<SessionData>({
   cookie: {
@@ -11,5 +11,11 @@ export const sessionStorage = createCookieSessionStorage<SessionData>({
     secrets: ["lODSFhasdfdjf132afds_ljouoviu1"],
   },
 });
+
+export function serializeCookies(data: Object) {
+  return Object.entries(data)
+    .map(([key, value]) => `${key}=${value} `)
+    .join("; ");
+}
 
 export const { getSession, commitSession, destroySession } = sessionStorage;

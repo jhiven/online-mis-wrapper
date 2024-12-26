@@ -70,13 +70,13 @@ func (e *JadwalKuliahExtractor) Extract(r io.Reader) (*JadwalKuliahData, error) 
 		Kelas:            kelas,
 		JamIstirahat:     jamIstirahat,
 		Table: map[Hari][]MataKuliah{
-			MINGGU: tbl[0],
-			SENIN:  tbl[1],
-			SELASA: tbl[2],
-			RABU:   tbl[3],
-			KAMIS:  tbl[4],
-			JUMAT:  tbl[5],
 			SABTU:  tbl[6],
+			JUMAT:  tbl[5],
+			KAMIS:  tbl[4],
+			RABU:   tbl[3],
+			SELASA: tbl[2],
+			SENIN:  tbl[1],
+			MINGGU: tbl[0],
 		},
 	}, nil
 }

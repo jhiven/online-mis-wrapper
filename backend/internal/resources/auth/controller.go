@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/jhiven/online-mis-wrapper/internal/core/errs"
 	hr "github.com/jhiven/online-mis-wrapper/internal/core/http_request"
 )
 
@@ -23,6 +24,7 @@ type loginResponse struct {
 	UserCookie *http.Cookie `json:"-"`
 	User       string       `json:"user"`
 	NRP        string       `json:"nrp"`
+	SesssionId string       `json:"sessionId"`
 }
 
 func (c *AuthController) getLtCas() (sessionId, lt string, err error) {
@@ -66,7 +68,11 @@ func (c *AuthController) getLtCas() (sessionId, lt string, err error) {
 func (c *AuthController) LoginCas(loginData LoginPayload) (*loginResponse, error) {
 	sessionId, lt, err := c.getLtCas()
 	if err != nil {
-		return nil, err
+		return nil, errs.NewHTTPError(
+			http.StatusInternalServerError,
+			"Failed to get lt and session id form CAS",
+			err,
+		)
 	}
 
 	payload := url.Values{
@@ -97,7 +103,11 @@ func (c *AuthController) LoginCas(loginData LoginPayload) (*loginResponse, error
 
 	res, err := opt.Request()
 	if err != nil {
-		return nil, err
+		return nil, errs.NewHTTPError(
+			http.StatusInternalServerError,
+			"Failed to make a request to Online Mis PENS",
+			err,
+		)
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
@@ -105,16 +115,24 @@ func (c *AuthController) LoginCas(loginData LoginPayload) (*loginResponse, error
 		}
 	}()
 	if res.StatusCode != 200 {
-		return nil, err
+		return nil, errs.NewHTTPError(
+			http.StatusInternalServerError,
+			"Failed to get response from Online Mis PENS",
+			nil,
+		)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewHTTPError(
+			http.StatusInternalServerError,
+			"Failed to parse response body",
+			err,
+		)
 	}
 
 	if loginErr := doc.Find(".errors"); loginErr.Length() > 0 {
-		return nil, errors.New(loginErr.Text())
+		return nil, errs.NewHTTPError(http.StatusUnauthorized, loginErr.Text(), nil)
 	}
 
 	user := strings.TrimSpace(strings.Split(doc.Find(".userout a").Text(), ":")[1])
@@ -141,5 +159,6 @@ func (c *AuthController) LoginCas(loginData LoginPayload) (*loginResponse, error
 		UserCookie: userCookie,
 		User:       userName,
 		NRP:        nrp,
+		SesssionId: phpSessId.Value,
 	}, nil
 }

@@ -22,16 +22,16 @@ func New(mux *http.ServeMux) {
 
 	authHandler := auth.New(validate, redisClient)
 
-	mux.Handle("POST /login", m.GuestMiddleware(authHandler.Login))
-	mux.Handle("POST /logout", m.UserMiddleware(authHandler.Logout))
+	mux.Handle("POST /api/v1/login", m.GuestMiddleware(authHandler.Login))
+	mux.Handle("POST /api/v1/logout", m.UserMiddleware(authHandler.Logout))
 
 	absenHandler := absen.New(validate, httpClient, redisClient)
 	frsHandler := frs.New(validate, httpClient, redisClient)
 	jadwalKuliahHandler := jadwalkuliah.New(validate, httpClient, redisClient)
 	nilaiSemeserHandler := nilaisemester.New(validate, httpClient, redisClient)
 
-	mux.Handle("GET /academic/absen", m.UserMiddleware(absenHandler.GetAbsen))
-	mux.Handle("GET /academic/frs", m.UserMiddleware(frsHandler.GetFrsOnlineMbkm))
-	mux.Handle("GET /academic/nilai", m.UserMiddleware(nilaiSemeserHandler.GetNilai))
-	mux.Handle("GET /academic/jadwal", m.UserMiddleware(jadwalKuliahHandler.GetJadwal))
+	mux.Handle("GET /api/v1/academic/absen", m.UserMiddleware(absenHandler.GetAbsen))
+	mux.Handle("GET /api/v1/academic/frs", m.UserMiddleware(frsHandler.GetFrsOnlineMbkm))
+	mux.Handle("GET /api/v1/academic/nilai", m.UserMiddleware(nilaiSemeserHandler.GetNilai))
+	mux.Handle("GET /api/v1/academic/jadwal", m.UserMiddleware(jadwalKuliahHandler.GetJadwal))
 }

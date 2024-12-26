@@ -1,5 +1,5 @@
 import type { Route } from "./+types/user-layout";
-import { Outlet, isRouteErrorResponse, redirect } from "react-router";
+import { Outlet, redirect } from "react-router";
 import Navbar from "~/components/ui/navbar";
 import { getSession } from "~/lib/cookie";
 
@@ -12,7 +12,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const user = session.get("user");
   if (!user) throw redirect("/login");
 
-  return { user };
+  const nrp = session.get("nrp");
+  if (!nrp) throw redirect("/login");
+
+  return { user: `${user} (${nrp})` };
 }
 
 export default function UserLayout({
