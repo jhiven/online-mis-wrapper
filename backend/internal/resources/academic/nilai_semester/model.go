@@ -1,9 +1,9 @@
 package nilaisemester
 
-import "github.com/jhiven/online-mis-wrapper/internal/core/helper"
+import "github.com/jhiven/online-mis-wrapper/internal/resources/common"
 
 type NilaiSemesterData struct {
-	helper.SemesterListData
+	common.SemesterListData
 	Table []table `json:"table"`
 }
 

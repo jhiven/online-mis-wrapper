@@ -1,8 +1,8 @@
-package helper
+package common
 
 type SemesterListData struct {
-	Semester []int `json:"semester"`
-	Year     []int `json:"year"`
+	Semester []int `json:"semester" redis:"semester"`
+	Year     []int `json:"year"     redis:"year"`
 }
 
 type SemesterData struct {

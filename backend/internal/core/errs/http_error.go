@@ -6,20 +6,20 @@ type HTTPError struct {
 	Cause   string `json:"cause,omitempty"`
 }
 
-func (e *HTTPError) Error() string {
+func (e HTTPError) Error() string {
 	return e.Message + ": " + e.Cause
 }
 
-func NewHTTPError(status int, message string, cause error) *HTTPError {
+func NewHTTPError(status int, message string, cause error) HTTPError {
 	if cause == nil {
-		return &HTTPError{
+		return HTTPError{
 			Status:  status,
 			Message: message,
 			Cause:   "",
 		}
 	}
 
-	return &HTTPError{
+	return HTTPError{
 		Status:  status,
 		Message: message,
 		Cause:   cause.Error(),

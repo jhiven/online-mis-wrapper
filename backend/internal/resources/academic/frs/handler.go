@@ -5,22 +5,25 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jhiven/online-mis-wrapper/internal/core/helper"
 	hr "github.com/jhiven/online-mis-wrapper/internal/core/http_request"
 	v "github.com/jhiven/online-mis-wrapper/internal/core/validator"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/common"
+	"github.com/redis/go-redis/v9"
 )
 
 type FRSHandler struct {
 	extractor *FRSExtractor
 	validate  *validator.Validate
 	client    *http.Client
+	cache     *redis.Client
 }
 
-func New(validate *validator.Validate, client *http.Client) *FRSHandler {
+func New(validate *validator.Validate, client *http.Client, cache *redis.Client) *FRSHandler {
 	return &FRSHandler{
 		extractor: &FRSExtractor{},
 		validate:  validate,
 		client:    client,
+		cache:     cache,
 	}
 }
 
@@ -46,6 +49,7 @@ func (h *FRSHandler) GetFrsOnlineMbkm(w http.ResponseWriter, r *http.Request) er
 	// w.WriteHeader(http.StatusOK)
 	// json.NewEncoder(w).Encode(data)
 
+	nrp, _ := r.Cookie("nrp")
 	year, semester, err := v.YearSemesterValidator(r.URL.Query(), h.validate)
 	if err != nil {
 		return err
@@ -61,9 +65,11 @@ func (h *FRSHandler) GetFrsOnlineMbkm(w http.ResponseWriter, r *http.Request) er
 		),
 	}
 
-	handler := helper.OnlineMisHandler[FRSData]{
+	handler := common.OnlineMisHandler[FRSData]{
 		Req:       opt,
 		Extractor: h.extractor,
+		Cache:     h.cache,
+		CacheKey:  fmt.Sprintf("frs:%s:%s:%s", nrp.Value, year, semester),
 	}
 
 	if err := handler.RequestHandler(w, r); err != nil {

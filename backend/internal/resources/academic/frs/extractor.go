@@ -8,12 +8,14 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jhiven/online-mis-wrapper/internal/core/helper"
+	v "github.com/jhiven/online-mis-wrapper/internal/core/validator"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/common"
 )
 
 type FRSExtractor struct{}
 
 func (e *FRSExtractor) Extract(r io.Reader) (*FRSData, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
+	doc, err := v.ParseAndValidateExtractor(r)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +124,7 @@ func (e *FRSExtractor) Extract(r io.Reader) (*FRSData, error) {
 			Perubahan: dateRange{From: tanggalPerubahan[0], To: tanggalPerubahan[1]},
 			Drop:      dateRange{From: tanggalDrop[0], To: tanggalDrop[1]},
 		},
-		SemesterListData: helper.SemesterListData{Semester: semester, Year: year},
+		SemesterListData: common.SemesterListData{Semester: semester, Year: year},
 		Table:            tbl,
 	}, nil
 }

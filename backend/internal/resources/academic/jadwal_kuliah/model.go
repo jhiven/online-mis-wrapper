@@ -1,6 +1,6 @@
 package jadwalkuliah
 
-import "github.com/jhiven/online-mis-wrapper/internal/core/helper"
+import "github.com/jhiven/online-mis-wrapper/internal/resources/common"
 
 type Hari string
 
@@ -15,7 +15,7 @@ const (
 )
 
 type JadwalKuliahData struct {
-	helper.SemesterListData
+	common.SemesterListData
 	Kelas        string `json:"kelas"`
 	JamIstirahat string `json:"jamIstirahat"`
 	Table        table  `json:"table"`

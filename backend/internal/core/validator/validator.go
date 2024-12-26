@@ -27,7 +27,7 @@ func YearSemesterValidator(
 	}
 
 	semester = u.Get("semester")
-	if err := v.Var(semester, "required,numeric,oneof=1 2"); err != nil {
+	if err := v.Var(semester, "required,numeric,oneof=1 2 3 4"); err != nil {
 		errors := err.(validator.ValidationErrors)
 		return "", "", errs.NewHTTPError(
 			http.StatusBadRequest,

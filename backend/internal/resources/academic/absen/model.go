@@ -1,15 +1,15 @@
 package absen
 
-import "github.com/jhiven/online-mis-wrapper/internal/core/helper"
+import "github.com/jhiven/online-mis-wrapper/internal/resources/common"
 
 type table struct {
-	Kode       string   `json:"kode"`
-	MataKuliah string   `json:"mataKuliah"`
-	Minggu     []string `json:"minggu"`
-	Kehadiran  string   `json:"kehadiran"`
+	Kode       string   `json:"kode"       redis:"kode"`
+	MataKuliah string   `json:"mataKuliah" redis:"mataKuliah"`
+	Minggu     []string `json:"minggu"     redis:"minggu"`
+	Kehadiran  string   `json:"kehadiran"  redis:"kehadiran"`
 }
 
 type AbsenData struct {
-	helper.SemesterListData
-	Table []table `json:"table"`
+	common.SemesterListData
+	Table []table `json:"table" redis:"table"`
 }

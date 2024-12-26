@@ -9,7 +9,7 @@ import (
 )
 
 func JSONError(w http.ResponseWriter, err error) {
-	httpError, ok := err.(*errs.HTTPError)
+	httpError, ok := err.(errs.HTTPError)
 	if !ok {
 		slog.Error("Unexpected error occured", "error", err)
 		httpError = errs.NewHTTPError(http.StatusInternalServerError, "Unknown Error", err)

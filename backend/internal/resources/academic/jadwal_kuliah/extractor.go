@@ -6,13 +6,15 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/jhiven/online-mis-wrapper/internal/core/helper"
+	v "github.com/jhiven/online-mis-wrapper/internal/core/validator"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/common"
 )
 
 type JadwalKuliahExtractor struct{}
 
 func (e *JadwalKuliahExtractor) Extract(r io.Reader) (*JadwalKuliahData, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
+	doc, err := v.ParseAndValidateExtractor(r)
+
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,7 @@ func (e *JadwalKuliahExtractor) Extract(r io.Reader) (*JadwalKuliahData, error) 
 	})
 
 	return &JadwalKuliahData{
-		SemesterListData: helper.SemesterListData{Semester: semester, Year: year},
+		SemesterListData: common.SemesterListData{Semester: semester, Year: year},
 		Kelas:            kelas,
 		JamIstirahat:     jamIstirahat,
 		Table: map[Hari][]MataKuliah{

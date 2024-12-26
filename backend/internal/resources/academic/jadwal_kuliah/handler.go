@@ -5,26 +5,34 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jhiven/online-mis-wrapper/internal/core/helper"
 	hr "github.com/jhiven/online-mis-wrapper/internal/core/http_request"
 	v "github.com/jhiven/online-mis-wrapper/internal/core/validator"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/common"
+	"github.com/redis/go-redis/v9"
 )
 
 type JadwalKuliahHandler struct {
 	extractor *JadwalKuliahExtractor
 	validate  *validator.Validate
 	client    *http.Client
+	cache     *redis.Client
 }
 
-func New(validate *validator.Validate, client *http.Client) *JadwalKuliahHandler {
+func New(
+	validate *validator.Validate,
+	client *http.Client,
+	cache *redis.Client,
+) *JadwalKuliahHandler {
 	return &JadwalKuliahHandler{
 		extractor: &JadwalKuliahExtractor{},
 		validate:  validate,
 		client:    client,
+		cache:     cache,
 	}
 }
 
 func (h *JadwalKuliahHandler) GetJadwal(w http.ResponseWriter, r *http.Request) error {
+	nrp, _ := r.Cookie("nrp")
 	year, semester, err := v.YearSemesterValidator(r.URL.Query(), h.validate)
 	if err != nil {
 		return err
@@ -40,9 +48,11 @@ func (h *JadwalKuliahHandler) GetJadwal(w http.ResponseWriter, r *http.Request) 
 		),
 	}
 
-	handler := helper.OnlineMisHandler[JadwalKuliahData]{
+	handler := common.OnlineMisHandler[JadwalKuliahData]{
 		Req:       opt,
 		Extractor: h.extractor,
+		Cache:     h.cache,
+		CacheKey:  fmt.Sprintf("jadwal:%s:%s:%s", nrp.Value, year, semester),
 	}
 
 	if err := handler.RequestHandler(w, r); err != nil {

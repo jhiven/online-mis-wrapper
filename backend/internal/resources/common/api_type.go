@@ -1,4 +1,4 @@
-package helper
+package common
 
 type ApiResponse struct {
 	Status int         `json:"status"`

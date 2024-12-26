@@ -1,4 +1,4 @@
-package login
+package auth
 
 import (
 	"errors"
@@ -7,17 +7,25 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	hr "github.com/jhiven/online-mis-wrapper/internal/core/http_request"
 )
 
-type LoginController struct {
+type AuthController struct {
 	client *http.Client
 }
 
-func (c *LoginController) getLtCas() (sessionId, lt string, err error) {
+type loginResponse struct {
+	PHPSESSID  *http.Cookie `json:"-"`
+	UserCookie *http.Cookie `json:"-"`
+	User       string       `json:"user"`
+	NRP        string       `json:"nrp"`
+}
+
+func (c *AuthController) getLtCas() (sessionId, lt string, err error) {
 	opt := hr.HttpRequest{
 		Client: c.client,
 		Method: http.MethodGet,
@@ -55,13 +63,10 @@ func (c *LoginController) getLtCas() (sessionId, lt string, err error) {
 	return sessionId, lt, nil
 }
 
-func (c *LoginController) LoginCas(
-	loginData LoginPayload,
-) (phpSessId, userCookie *http.Cookie, err error) {
+func (c *AuthController) LoginCas(loginData LoginPayload) (*loginResponse, error) {
 	sessionId, lt, err := c.getLtCas()
-
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	payload := url.Values{
@@ -92,7 +97,7 @@ func (c *LoginController) LoginCas(
 
 	res, err := opt.Request()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer func() {
 		if err := res.Body.Close(); err != nil {
@@ -100,30 +105,41 @@ func (c *LoginController) LoginCas(
 		}
 	}()
 	if res.StatusCode != 200 {
-		return nil, nil, errors.New("Gagal login CAS, status code != 200")
+		return nil, err
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if loginErr := doc.Find(".errors"); loginErr.Length() > 0 {
-		return nil, nil, errors.New(loginErr.Text())
+		return nil, errors.New(loginErr.Text())
 	}
 
 	user := strings.TrimSpace(strings.Split(doc.Find(".userout a").Text(), ":")[1])
 
-	userCookie = &http.Cookie{
-		Name:     "user",
-		Value:    user,
+	regex := regexp.MustCompile(`^(.*?)\s*\(`)
+	userName := regex.FindStringSubmatch(user)[1]
+
+	regex = regexp.MustCompile(`\(([^)]+)\)`)
+	nrp := regex.FindStringSubmatch(user)[1]
+
+	userCookie := &http.Cookie{
+		Name:     "nrp",
+		Value:    nrp,
 		HttpOnly: true,
 		Secure:   false,
 	}
 
-	phpSessId = c.client.Jar.Cookies(&url.URL{Scheme: "https", Host: "online.mis.pens.ac.id"})[0]
+	phpSessId := c.client.Jar.Cookies(&url.URL{Scheme: "https", Host: "online.mis.pens.ac.id"})[0]
 	phpSessId.HttpOnly = true
 	phpSessId.Secure = false
 
-	return phpSessId, userCookie, nil
+	return &loginResponse{
+		PHPSESSID:  phpSessId,
+		UserCookie: userCookie,
+		User:       userName,
+		NRP:        nrp,
+	}, nil
 }

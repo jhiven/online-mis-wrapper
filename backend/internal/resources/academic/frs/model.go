@@ -1,9 +1,9 @@
 package frs
 
-import "github.com/jhiven/online-mis-wrapper/internal/core/helper"
+import "github.com/jhiven/online-mis-wrapper/internal/resources/common"
 
 type FRSData struct {
-	helper.SemesterListData
+	common.SemesterListData
 	Dosen string `json:"dosen"`
 	Sks   struct {
 		Batas int `json:"batas"`

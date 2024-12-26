@@ -1,0 +1,35 @@
+services:
+  online-mis-frontend:
+    container_name: online-mis-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.pnpm 
+    restart: unless-stopped
+    networks:
+      - caddy
+
+  online-mis-backend:
+    container_name: online-mis-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - caddy
+  
+  redis:
+    container_name: online-mis-redis
+    image: redis:latest
+    restart: always
+    environment:
+      - REDIS_PASSWORD=123
+      - REDIS_PORT=6379
+    networks:
+      - caddy
+
+
+networks:
+  caddy:
+    external: true

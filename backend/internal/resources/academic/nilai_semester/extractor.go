@@ -6,13 +6,15 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/jhiven/online-mis-wrapper/internal/core/helper"
+	v "github.com/jhiven/online-mis-wrapper/internal/core/validator"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/common"
 )
 
 type NilaiSemesterExtractor struct{}
 
 func (e *NilaiSemesterExtractor) Extract(r io.Reader) (*NilaiSemesterData, error) {
-	doc, err := goquery.NewDocumentFromReader(r)
+	doc, err := v.ParseAndValidateExtractor(r)
+
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +49,7 @@ func (e *NilaiSemesterExtractor) Extract(r io.Reader) (*NilaiSemesterData, error
 	})
 
 	return &NilaiSemesterData{
-		SemesterListData: helper.SemesterListData{Semester: semester, Year: year},
+		SemesterListData: common.SemesterListData{Semester: semester, Year: year},
 		Table:            tbl,
 	}, nil
 }

@@ -9,25 +9,29 @@ import (
 	"github.com/jhiven/online-mis-wrapper/internal/resources/academic/frs"
 	jadwalkuliah "github.com/jhiven/online-mis-wrapper/internal/resources/academic/jadwal_kuliah"
 	nilaisemester "github.com/jhiven/online-mis-wrapper/internal/resources/academic/nilai_semester"
-	"github.com/jhiven/online-mis-wrapper/internal/resources/login"
+	"github.com/jhiven/online-mis-wrapper/internal/resources/auth"
 	"github.com/jhiven/online-mis-wrapper/internal/router/middleware"
+	"github.com/jhiven/online-mis-wrapper/internal/services/cache"
 )
 
 func New(mux *http.ServeMux) {
 	validate := validator.New()
-	client := hr.NewClient()
+	httpClient := hr.NewClient()
+	redisClient := cache.New()
+	m := middleware.New(validate, redisClient)
 
-	LoginHandler := login.New(validate)
+	authHandler := auth.New(validate, redisClient)
 
-	mux.Handle("POST /login", middleware.NewGuestMiddleware(LoginHandler.Login))
+	mux.Handle("POST /login", m.GuestMiddleware(authHandler.Login))
+	mux.Handle("POST /logout", m.UserMiddleware(authHandler.Logout))
 
-	absenHandler := absen.New(validate, client)
-	frsHandler := frs.New(validate, client)
-	jadwalKuliahHandler := jadwalkuliah.New(validate, client)
-	nilaiSemeserHandler := nilaisemester.New(validate, client)
+	absenHandler := absen.New(validate, httpClient, redisClient)
+	frsHandler := frs.New(validate, httpClient, redisClient)
+	jadwalKuliahHandler := jadwalkuliah.New(validate, httpClient, redisClient)
+	nilaiSemeserHandler := nilaisemester.New(validate, httpClient, redisClient)
 
-	mux.Handle("GET /academic/absen", middleware.NewUserMiddleware(absenHandler.GetAbsen))
-	mux.Handle("GET /academic/frs", middleware.NewUserMiddleware(frsHandler.GetFrsOnlineMbkm))
-	mux.Handle("GET /academic/nilai", middleware.NewUserMiddleware(nilaiSemeserHandler.GetNilai))
-	mux.Handle("GET /academic/jadwal", middleware.NewUserMiddleware(jadwalKuliahHandler.GetJadwal))
+	mux.Handle("GET /academic/absen", m.UserMiddleware(absenHandler.GetAbsen))
+	mux.Handle("GET /academic/frs", m.UserMiddleware(frsHandler.GetFrsOnlineMbkm))
+	mux.Handle("GET /academic/nilai", m.UserMiddleware(nilaiSemeserHandler.GetNilai))
+	mux.Handle("GET /academic/jadwal", m.UserMiddleware(jadwalKuliahHandler.GetJadwal))
 }
