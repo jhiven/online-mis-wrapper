@@ -99,13 +99,13 @@ func (e *FRSExtractor) Extract(r io.Reader) (*FRSData, error) {
 	})
 
 	var batas, sisa int
-	if len(sks) > 3 {
+	if len(sks) >= 3 {
 		batas, _ = strconv.Atoi(sks[0])
 		sisa, _ = strconv.Atoi(sks[2])
 	}
 
 	var ipk, ips float64
-	if len(ip) > 3 {
+	if len(ip) >= 3 {
 		ipk, _ = strconv.ParseFloat(ip[0], 64)
 		ips, _ = strconv.ParseFloat(ip[2], 64)
 	}

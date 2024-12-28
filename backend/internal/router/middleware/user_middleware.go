@@ -33,6 +33,7 @@ func (m *AppMiddleware) userMiddleware(next http.Handler) http.Handler {
 					"Failed to get session from cache",
 					err,
 				))
+				return
 			}
 		}
 
