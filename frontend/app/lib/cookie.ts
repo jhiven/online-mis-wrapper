@@ -6,7 +6,7 @@ export const sessionStorage = createCookieSessionStorage<SessionData>({
   cookie: {
     name: "session",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     path: "/",
     secrets: ["lODSFhasdfdjf132afds_ljouoviu1"],
   },

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production react-router build",
     "dev": "react-router dev",
-    "start": "cross-env HOST=0.0.0.0 NODE_ENV=production react-router-serve ./build/server/index.js",
+    "start": "cross-env PORT=80 HOST=0.0.0.0 NODE_ENV=production react-router-serve ./build/server/index.js",
     "format": "prettier --ignore-path .gitignore --write \"app/**/*.{js,jsx,ts,tsx}\"",
     "typecheck": "react-router typegen && tsc"
   },
