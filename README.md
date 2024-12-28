@@ -4,89 +4,61 @@ It's a project that wraps [Online Mis PENS](https://online.mis.pens.ac.id) with 
 
 ### Why did I build this?
 
-This project was created purely for fun and as a way to improve my skills. It’s not meant to replace Online MIS PENS but to explore better design possibilities and learn new tech. For instance, this project uses the latest React Router v7 Framework Mode.
+This project was created purely for fun and as a way to improve my skills. It’s not meant to replace Online MIS PENS but to explore better design possibilities and learn new tech. For instance, this project uses the latest [React Router v7 Framework Mode](https://reactrouter.com/home#react-router-as-a-framework).
 
 ### What’s next?
 
 My ambition is to rewrite the backend in Golang and Rust to compare the two and figure out which one works better.
 
+### Progress
+
+- [x] [**React Router Framework v7**](https://github.com/jhiven/online-mis-wrapper/tree/RRv7-framework)
+  - [x] UI with shadcn
+  - [x] Online Mis Extractor (frs, absen, jadwal, nilai)
+- [x] [**Golang Backend**](https://github.com/jhiven/online-mis-wrapper/tree/go-backend)
+  - [x] Redis cache
+  - [x] Online Mis Extractor (frs, absen, jadwal, nilai)
+- [ ] **Rust Backend** _(Work In Progress)_
+  - [ ] Redis cache
+  - [ ] Online Mis Extractor (frs, absen, jadwal, nilai)
+
 ## Run this project locally
 
-### Installation on your machine
+### Run backend server
+
+First, you have to run redis. Make sure you already have docker installed.
+
+```bash
+sudo docker compose -f compose.redis.yml up -d
+```
+
+And then, you can run the Golang server. Make sure you already have go v1.23 installed on you system.
+
+```bash
+cd backend && go run cmd/server/main.go
+```
+
+### Run frontend
+
+Copy file `frontend/.env.example` to `frontend/.env` and set this value:
+
+```
+VITE_BACKEND_URL=http://localhost:8080
+```
 
 Install the dependencies:
 
 ```bash
-npm install
+cd frontend && npm install
 ```
-
-### Start Development Server
 
 Start the development server with npm:
 
 ```bash
-npm run dev
+cd frontend && npm run dev
 ```
 
 Open the website at `http://localhost:5173`.
-
-## Selfhost this project
-
-### Docker Compose Deployment
-
-To build and run using Docker Compose:
-
-```bash
-docker compose up -d
-```
-
-### Docker Deployment
-
-This template includes three Dockerfiles optimized for different package managers:
-
-- `Dockerfile` - for npm
-- `Dockerfile.pnpm` - for pnpm
-- `Dockerfile.bun` - for bun
-
-To build and run using Docker:
-
-```bash
-# For npm
-docker build -t my-app .
-
-# For pnpm
-docker build -f Dockerfile.pnpm -t my-app .
-
-# For bun
-docker build -f Dockerfile.bun -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- Your Own VPS
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
 
 ---
 
