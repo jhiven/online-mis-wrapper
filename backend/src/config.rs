@@ -15,4 +15,12 @@ pub struct AppConfig {
     /// The proxy url to use for the request client
     #[clap(long, env)]
     pub proxy_url: Option<String>,
+
+    /// The proxy url to use for the request client
+    #[clap(long, env)]
+    pub server_address: Option<String>,
+
+    /// The proxy url to use for the request client
+    #[clap(long, env)]
+    pub server_port: Option<u16>,
 }

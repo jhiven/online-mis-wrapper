@@ -6,6 +6,7 @@ use error::Error;
 use redis::AsyncCommands;
 use std::{
     net::{Ipv4Addr, SocketAddr},
+    str::FromStr,
     time::Duration,
 };
 use tokio::net::TcpListener;
@@ -53,7 +54,14 @@ pub async fn serve(cfg: AppConfig) -> anyhow::Result<()> {
 
     let app = api_router(api_context);
 
-    let addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, 8080));
+    let addr = match cfg.server_address {
+        Some(addr) => Ipv4Addr::from_str(addr.as_str())?,
+        None => Ipv4Addr::UNSPECIFIED,
+    };
+    tracing::debug!("server address {}", addr);
+
+    let addr = SocketAddr::from((addr, cfg.server_port.unwrap_or_else(|| 8080)));
+
     let listener = TcpListener::bind(addr).await?;
     tracing::info!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app)
