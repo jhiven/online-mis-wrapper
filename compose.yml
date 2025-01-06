@@ -5,36 +5,18 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.pnpm 
     restart: unless-stopped
-    network_mode: service:tailscale-pens
-    environment:
-      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+    networks:
+      - caddy
 
   redis:
     container_name: online-mis-redis
-    network_mode: service:tailscale-pens
     image: redis:latest
     restart: always
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
-
-  tailscale-pens:
-    image: tailscale/tailscale:latest
-    container_name: tailscale-pens
-    hostname: pens
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS}
-      - TS_USERSPACE=false
-    volumes:
-      - ts-pens-data:/var/lib/tailscale
-    devices:
-     - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-      - sys_module
-    restart: unless-stopped
+      - REDIS_PASSWORD=123
+      - REDIS_PORT=6379
+    networks:
+      - caddy
 
   online-mis-backend:
     container_name: online-mis-backend
@@ -42,31 +24,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    network_mode: service:tailscale-backend
-    environment:
-      - REDIS_ADDRESS=${REDIS_ADDRESS}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - caddy
 
-  tailscale-backend:
-    image: tailscale/tailscale:latest
-    container_name: tailscale-backend
-    hostname: pens-backend
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS}
-      - TS_USERSPACE=false
-    volumes:
-      - ts-backend-data:/var/lib/tailscale
-    devices:
-     - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-      - sys_module
-    restart: unless-stopped
-
-volumes:
-  ts-pens-data:
-    driver: local
-  ts-backend-data:
-    driver: local
+networks:
+  caddy:
+    external: true

@@ -2,6 +2,10 @@
 
 It's a project that wraps [Online Mis PENS](https://online.mis.pens.ac.id) with an improved UI and UX. How does it work? First, you'll log in with your account. Once your account is validated, you'll receive a cookie, which is then encrypted and stored securely in your browser. With the cookie, we can make requests to any page on Online MIS PENS, extract the HTML response, and present it with a cleaner, more user-friendly interface.
 
+You can try this in here [https://pens.jhiven.my.id](https://pens.jhiven.my.id)
+
+I don’t store any sensitive data on my server, so your information stays safe. If you’re still unsure, you can check the source code or just run this project locally.
+
 ### Why did I build this?
 
 This project was created purely for fun and as a way to improve my skills. It’s not meant to replace Online MIS PENS but to explore better design possibilities and learn new tech. For instance, this project uses the latest [React Router v7 Framework Mode](https://reactrouter.com/home#react-router-as-a-framework).
@@ -18,9 +22,10 @@ My ambition is to rewrite the backend in Golang and Rust to compare the two and 
 - [x] [**Golang Backend**](https://github.com/jhiven/online-mis-wrapper/tree/go-backend)
   - [x] Redis cache
   - [x] Online Mis Extractor (frs, absen, jadwal, nilai)
-- [ ] **Rust Backend** _(Work In Progress)_
-  - [ ] Redis cache
-  - [ ] Online Mis Extractor (frs, absen, jadwal, nilai)
+- [x] [**Rust Backend**](https://github.com/jhiven/online-mis-wrapper/tree/rust-backend)
+  - [x] Redis cache
+  - [x] Proxy support
+  - [x] Online Mis Extractor (frs, absen, jadwal, nilai)
 
 ## Run this project locally
 
@@ -32,10 +37,10 @@ First, you have to run redis. Make sure you already have docker installed.
 sudo docker compose -f compose.redis.yml up -d
 ```
 
-And then, you can run the Golang server. Make sure you already have go v1.23 installed on you system.
+And then, you can run the server. Make sure you already have rustc v1.83.0 installed on you system.
 
 ```bash
-cd backend && go run cmd/server/main.go
+cd backend && cargo run
 ```
 
 ### Run frontend

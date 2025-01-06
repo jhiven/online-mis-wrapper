@@ -30,7 +30,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
-import { ChevronRight, LogOut, MenuIcon } from "lucide-react";
+import {
+  ChevronRight,
+  Github,
+  GithubIcon,
+  LogOut,
+  MenuIcon,
+} from "lucide-react";
 import React from "react";
 import { Link, type LinkProps, useFetcher } from "react-router";
 import { cn } from "~/lib/utils";
@@ -202,10 +208,21 @@ export default function Navbar({ user }: { user: string }) {
                 <p className="text-xs font-normal">{user}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a
+                  href="https://github.com/jhiven/online-mis-wrapper"
+                  target="_blank"
+                >
+                  <GithubIcon />
+                  Source Code
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   fetcher.submit({}, { action: "/logout", method: "post" });
                 }}
+                className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
               >
                 <LogOut />
                 Log out

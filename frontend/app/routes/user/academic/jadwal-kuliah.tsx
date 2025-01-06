@@ -23,7 +23,10 @@ export async function loader({
 }: Route.LoaderArgs): Promise<SemesterLoaderType<JadwalKuliahData>> {
   const { searchParams } = new URL(request.url);
   const session = await getSession(request.headers.get("Cookie"));
-  const { semester, year } = getCurrentYearAndSemester({ searchParams });
+  const { semester, year } = getCurrentYearAndSemester({
+    searchParams,
+    session,
+  });
   searchParams.set("semester", semester.toString());
   searchParams.set("year", year.toString());
 

@@ -1,6 +1,12 @@
 import { createCookieSessionStorage } from "react-router";
 
-type SessionData = { PHPSESSID: string; user: string; nrp: string };
+type SessionData = {
+  PHPSESSID: string;
+  user: string;
+  nrp: string;
+  year: number;
+  semester: number;
+};
 
 export const sessionStorage = createCookieSessionStorage<SessionData>({
   cookie: {

@@ -22,11 +22,13 @@ export async function action({ request }: Route.ActionArgs) {
     return { error: json.message ?? "Terjadi kesalahan" };
   }
 
-  const { nrp, user, sessionId } = json.data;
+  const { nrp, user, sessionId, year, semester } = json.data;
   const session = await getSession(request.headers.get("Cookie"));
   session.set("nrp", nrp);
   session.set("user", user);
   session.set("PHPSESSID", sessionId);
+  session.set("year", year);
+  session.set("semester", semester);
 
   throw redirect("/", {
     headers: { "Set-Cookie": await commitSession(session) },
