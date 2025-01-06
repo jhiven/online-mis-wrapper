@@ -5,13 +5,28 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.pnpm 
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    networks:
+      - caddy
 
   redis:
     container_name: online-mis-redis
     image: redis:latest
     restart: always
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=123
+      - REDIS_PORT=6379
+    networks:
+      - caddy
+
+  online-mis-backend:
+    container_name: online-mis-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    external: true
