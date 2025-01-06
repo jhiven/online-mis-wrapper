@@ -31,13 +31,14 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 pub struct AppContext {
     client: reqwest::Client,
     redis_pool: bb8::Pool<RedisConnectionManager>,
+    proxy_url: Option<String>,
 }
 
 pub async fn serve(cfg: AppConfig) -> anyhow::Result<()> {
     let redis_pool = connect_redis(cfg.redis_address, cfg.redis_password, cfg.redis_user).await?;
 
     let api_context = AppContext {
-        client: match cfg.proxy_url {
+        client: match cfg.proxy_url.clone() {
             Some(url) => {
                 tracing::info!("Using proxy: '{url}'");
                 reqwest::Client::builder()
@@ -50,6 +51,7 @@ pub async fn serve(cfg: AppConfig) -> anyhow::Result<()> {
             }
         },
         redis_pool,
+        proxy_url: cfg.proxy_url,
     };
 
     let app = api_router(api_context);

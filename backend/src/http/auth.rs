@@ -65,7 +65,7 @@ async fn login_handler(
     State(state): State<AppContext>,
     ValidatedJson(input): ValidatedJson<LoginRequest>,
 ) -> Result<Response> {
-    let res = login_cas(input).await?;
+    let res = login_cas(input, state.proxy_url).await?;
     let headers = AppendHeaders([
         (
             header::SET_COOKIE,
@@ -91,18 +91,35 @@ async fn login_handler(
         .into_response())
 }
 
-async fn login_cas(LoginRequest { email, password }: LoginRequest) -> Result<LoginResponse> {
+async fn login_cas(
+    LoginRequest { email, password }: LoginRequest,
+    proxy_url: Option<String>,
+) -> Result<LoginResponse> {
     let jar = Arc::new(reqwest::cookie::Jar::default());
-    let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::custom(|attempt| {
-            tracing::debug!("Redirecting to: {:?}", attempt.url().as_str());
-            if attempt.previous().len() >= 3 {
-                return attempt.stop();
-            }
-            attempt.follow()
-        }))
-        .cookie_provider(Arc::clone(&jar))
-        .build()?;
+    let custom_redirect = reqwest::redirect::Policy::custom(|attempt| {
+        tracing::debug!("Redirecting to: {:?}", attempt.url().as_str());
+        if attempt.previous().len() >= 3 {
+            return attempt.stop();
+        }
+        attempt.follow()
+    });
+    let client = match proxy_url {
+        Some(url) => {
+            tracing::debug!("Using proxy for login request: '{url}'");
+            reqwest::Client::builder()
+                .proxy(reqwest::Proxy::all(url)?)
+                .redirect(custom_redirect)
+                .cookie_provider(Arc::clone(&jar))
+                .build()?
+        }
+        None => {
+            tracing::debug!("Not using proxy for login request");
+            reqwest::Client::builder()
+                .redirect(custom_redirect)
+                .cookie_provider(Arc::clone(&jar))
+                .build()?
+        }
+    };
 
     let res = client.get("https://login.pens.ac.id/cas/login?service=https%3A%2F%2Fonline.mis.pens.ac.id%2Findex.php%3FLogin%3D1%26halAwal%3D1").send().await?;
 
