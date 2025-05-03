@@ -1,31 +1,26 @@
 use crate::config::AppConfig;
+use crate::core::result::Result;
+use aide::{axum::ApiRouter, openapi::OpenApi};
 use anyhow::{anyhow, Context};
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{Extension, Router};
 use bb8_redis::RedisConnectionManager;
-use error::Error;
+use docs::{api_docs, docs_routes};
 use redis::AsyncCommands;
+use reqwest::Method;
 use std::{
     net::{Ipv4Addr, SocketAddr},
     str::FromStr,
+    sync::Arc,
     time::Duration,
 };
 use tokio::net::TcpListener;
 use tower_http::{
-    catch_panic::CatchPanicLayer, compression::CompressionLayer,
+    catch_panic::CatchPanicLayer, compression::CompressionLayer, cors::CorsLayer,
     set_header::SetResponseHeaderLayer, timeout::TimeoutLayer, trace::TraceLayer,
 };
 
-mod academic;
-mod api_response;
-mod auth;
-mod error;
-mod handler;
-mod helper;
-mod middleware;
-mod success;
-mod validator;
-
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+mod docs;
+mod features;
 
 #[derive(Clone)]
 pub struct AppContext {
@@ -66,7 +61,7 @@ pub async fn serve(cfg: AppConfig) -> anyhow::Result<()> {
 
     let listener = TcpListener::bind(addr).await?;
     tracing::info!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app)
+    axum::serve(listener, app.into_make_service())
         .await
         .context("Error running HTTP server")
 }
@@ -102,33 +97,32 @@ async fn connect_redis(
     return Ok(pool);
 }
 
-#[axum::debug_handler]
-async fn check_ip_handler(State(state): State<AppContext>) -> Result<Json<String>> {
-    let res = state
-        .client
-        .get("https://icanhazip.com")
-        .send()
-        .await?
-        .text()
-        .await?
-        .trim()
-        .to_owned();
-
-    Ok(Json(res))
-}
-
 fn api_router(ctx: AppContext) -> Router {
-    Router::new()
-        .route("/check-ip", get(check_ip_handler))
-        .nest(
-            "/api/v1",
-            Router::new()
-                .merge(auth::router())
-                .merge(academic::router()),
-        )
+    let mut api = OpenApi::default();
+
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST, Method::DELETE])
+        .allow_headers([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::ACCEPT,
+        ])
+        .allow_credentials(true)
+        .allow_origin(
+            "http://localhost:3000"
+                .parse::<axum::http::HeaderValue>()
+                .unwrap(),
+        );
+
+    ApiRouter::new()
+        .nest_api_service("/api/v1", features::router().with_state(ctx))
+        .nest_api_service("/docs", docs_routes())
+        .finish_api_with(&mut api, api_docs)
+        .layer(Extension(Arc::new(api)))
+        .layer(cors)
         // Enables logging. Use `RUST_LOG=tower_http=debug`
         .layer((
-            SetResponseHeaderLayer::overriding(
+            SetResponseHeaderLayer::if_not_present(
                 axum::http::header::CONTENT_TYPE,
                 axum::http::HeaderValue::from_static("application/json"),
             ),
@@ -137,5 +131,4 @@ fn api_router(ctx: AppContext) -> Router {
             TimeoutLayer::new(Duration::from_secs(60)),
             CatchPanicLayer::new(),
         ))
-        .with_state(ctx)
 }
