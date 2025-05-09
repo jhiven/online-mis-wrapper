@@ -134,7 +134,7 @@ const nonAcademic: { title: string; to: LinkProps["to"] }[] = [
 
 export default function Navbar({ user }: { user: string }) {
   const queryClient = useQueryClient();
-  const logoutMutation = queryApi.useMutation("post", "/api/v1/logout", {
+  const logoutMutation = queryApi.useMutation("post", "/api/v1/auth/logout", {
     onSuccess: () => {
       queryClient.invalidateQueries();
     },

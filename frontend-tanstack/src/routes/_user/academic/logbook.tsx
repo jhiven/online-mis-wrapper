@@ -15,7 +15,7 @@ import { Button, SubmitButton } from "@/components/ui/button";
 import {
   Check,
   ChevronsUpDown,
-  File,
+  File as FileIcon,
   FileImage,
   Printer,
   Trash2,
@@ -39,7 +39,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Command,
@@ -58,6 +58,8 @@ import {
 } from "@/components/ui/form";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export const logbookSearchParamsSchema = yearSemesterSchema.extend({
   week: z
@@ -82,7 +84,7 @@ export const Route = createFileRoute("/_user/academic/logbook")({
   }) => {
     queryClient.prefetchQuery(
       queryApi.queryOptions("get", "/api/v1/academic/logbook", {
-        params: { query: { semester, year, minggu } },
+        params: { query: { semester, tahun: year, minggu } },
         signal: abortController.signal,
       })
     );
@@ -164,7 +166,7 @@ const columns: ColumnDef<LogbookResponse["data"]["table"][number]>[] = [
             href={`https://online.mis.pens.ac.id/${row.original.fileProgres}`}
             target="_blank"
           >
-            <File />
+            <FileIcon />
           </a>
         </Button>
       ),
@@ -225,7 +227,7 @@ const columns: ColumnDef<LogbookResponse["data"]["table"][number]>[] = [
                 params: {
                   query: {
                     semester: searchParams.semester,
-                    year: searchParams.year,
+                    tahun: searchParams.year,
                     minggu: searchParams.week,
                   },
                 },
@@ -293,11 +295,23 @@ const logbookCreateSchema = z
     if (sesuaiKuliah && matakuliah == undefined) {
       return ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Matakuliah harus dipilih jika sesuai kuliah dicentang",
+        message: "Matakuliah harus dipilih jika 'sesuai kuliah' dicentang",
         path: ["matakuliah"],
       });
     }
   });
+
+const uploadPdfSchema = z.object({
+  file: z.instanceof(File).refine((file) => file.size <= 5 * 1024 * 1024, {
+    message: "File size must not exceed 5MB",
+  }),
+});
+
+const uploadImageSchema = z.object({
+  file: z.instanceof(File).refine((file) => file.size <= 20 * 1024 * 1024, {
+    message: "File size must not exceed 20MB",
+  }),
+});
 
 function RouteContent() {
   const searchParams = Route.useSearch();
@@ -321,23 +335,63 @@ function RouteContent() {
     params: {
       query: {
         semester: searchParams.semester,
-        year: searchParams.year,
+        tahun: searchParams.year,
         minggu: searchParams.week,
       },
     },
   });
 
-  const { mutate, isPending } = queryApi.useMutation(
-    "post",
-    "/api/v1/academic/logbook",
-    {
+  const { mutate: mutateLogbook, isPending: isPendingLogbook } =
+    queryApi.useMutation("post", "/api/v1/academic/logbook", {
       onSuccess: () => {
         queryClient.invalidateQueries(
           queryApi.queryOptions("get", "/api/v1/academic/logbook", {
             params: {
               query: {
                 semester: searchParams.semester,
-                year: searchParams.year,
+                tahun: searchParams.year,
+                minggu: searchParams.week,
+              },
+            },
+          })
+        );
+      },
+    });
+
+  const { mutate: mutateImage, isPending: isPendingImage } =
+    queryApi.useMutation("post", "/api/v1/academic/logbook/upload_screenshot", {
+      onError: () => {
+        toast.error("Gagal mengunggah file Screenshot");
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          queryApi.queryOptions("get", "/api/v1/academic/logbook", {
+            params: {
+              query: {
+                semester: searchParams.semester,
+                tahun: searchParams.year,
+                minggu: searchParams.week,
+              },
+            },
+          })
+        );
+      },
+    });
+
+  const { mutate: mutatePdf, isPending: isPendingPdf } = queryApi.useMutation(
+    "post",
+    "/api/v1/academic/logbook/upload_pdf",
+    {
+      onError: () => {
+        toast.error("Gagal mengunggah file PDF");
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          queryApi.queryOptions("get", "/api/v1/academic/logbook", {
+            params: {
+              query: {
+                semester: searchParams.semester,
+                tahun: searchParams.year,
                 minggu: searchParams.week,
               },
             },
@@ -347,7 +401,7 @@ function RouteContent() {
     }
   );
 
-  const form = useForm<z.infer<typeof logbookCreateSchema>>({
+  const formLogbook = useForm<z.infer<typeof logbookCreateSchema>>({
     resolver: zodResolver(logbookCreateSchema),
     defaultValues: {
       sesuaiKuliah: false,
@@ -356,12 +410,20 @@ function RouteContent() {
     },
   });
 
-  const onSubmit = (value: z.infer<typeof logbookCreateSchema>) => {
+  const formUploadPdf = useForm<z.infer<typeof uploadPdfSchema>>({
+    resolver: zodResolver(uploadPdfSchema),
+  });
+
+  const formUploadImage = useForm<z.infer<typeof uploadImageSchema>>({
+    resolver: zodResolver(uploadImageSchema),
+  });
+
+  const onSubmitLogbook = (value: z.infer<typeof logbookCreateSchema>) => {
     const sessionData = parseSessionData();
     if (!sessionData) return;
     const { semester, week, year } = sessionData;
 
-    mutate({
+    mutateLogbook({
       body: {
         kpDaftar,
         mahasiswa,
@@ -378,7 +440,69 @@ function RouteContent() {
     });
   };
 
-  const [sesuaiKuliah] = form.watch(["sesuaiKuliah"]);
+  const onSubmitImage = (value: z.infer<typeof uploadImageSchema>) => {
+    const sessionData = parseSessionData();
+    if (!sessionData) return;
+    const { semester, week, year } = sessionData;
+
+    mutateImage({
+      body: {
+        file: value.file,
+        kpDaftar,
+        mahasiswa,
+        minggu: week,
+        semester,
+        tahun: year,
+        tanggal: format(new Date(), "yyyy-MM-dd"),
+      },
+      bodySerializer: (body) => {
+        const formData = new FormData();
+        if (body.file) formData.append("file", body.file);
+        formData.append("kp_daftar", body.kpDaftar);
+        formData.append("mahasiswa", body.mahasiswa);
+        formData.append("minggu", body.minggu.toString());
+        formData.append("semester", body.semester.toString());
+        formData.append("tahun", body.tahun.toString());
+        formData.append("tanggal", body.tanggal);
+
+        return formData;
+      },
+    });
+  };
+
+  const onSubmitPdf = (value: z.infer<typeof uploadPdfSchema>) => {
+    const sessionData = parseSessionData();
+    if (!sessionData) return;
+    const { semester, week, year } = sessionData;
+
+    mutatePdf({
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      body: {
+        file: value.file,
+        kpDaftar,
+        mahasiswa,
+        minggu: week,
+        semester,
+        tahun: year,
+        tanggal: format(new Date(), "yyyy-MM-dd"),
+      },
+      bodySerializer: (body) => {
+        const formData = new FormData();
+        if (body.file) formData.append("file", body.file);
+        formData.append("kp_daftar", body.kpDaftar);
+        formData.append("mahasiswa", body.mahasiswa);
+        formData.append("minggu", body.minggu.toString());
+        formData.append("semester", body.semester.toString());
+        formData.append("tahun", body.tahun.toString());
+        formData.append("tanggal", body.tanggal);
+        return formData;
+      },
+    });
+  };
+
+  const [sesuaiKuliah] = formLogbook.watch(["sesuaiKuliah"]);
 
   return (
     <div className="space-y-6">
@@ -402,38 +526,10 @@ function RouteContent() {
             });
           },
         }}
-      >
-        <tr>
-          <td className="p-2">Minggu</td>
-          <td className="p-2">
-            <Select
-              defaultValue={searchParams.week.toString()}
-              onValueChange={(val) => {
-                navigate({
-                  search: (prev) => ({ ...prev, week: parseInt(val) }),
-                  replace: true,
-                });
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Pilih semester" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {minggu.map((val) => (
-                    <SelectItem value={val.toString()} key={val}>
-                      {val}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </td>
-        </tr>
-      </TableYearSemester>
+      />
       <div className="rounded-md border">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Form {...formLogbook}>
+          <form onSubmit={formLogbook.handleSubmit(onSubmitLogbook)}>
             <Table>
               <TableBody>
                 {/* BIODATA MAHASISWA SECTION */}
@@ -489,7 +585,7 @@ function RouteContent() {
                   <TableCell className="w-1/4 font-medium">Jam Mulai</TableCell>
                   <TableCell className="w-3/4">
                     <FormField
-                      control={form.control}
+                      control={formLogbook.control}
                       name="jamMulai"
                       render={({ field }) => (
                         <FormItem>
@@ -514,7 +610,7 @@ function RouteContent() {
                   </TableCell>
                   <TableCell className="w-3/4">
                     <FormField
-                      control={form.control}
+                      control={formLogbook.control}
                       name="jamSelesai"
                       render={({ field }) => (
                         <FormItem>
@@ -539,7 +635,7 @@ function RouteContent() {
                   </TableCell>
                   <TableCell className="w-3/4">
                     <FormField
-                      control={form.control}
+                      control={formLogbook.control}
                       name="kegiatan"
                       render={({ field }) => (
                         <FormItem>
@@ -555,7 +651,7 @@ function RouteContent() {
                 <TableRow>
                   <TableCell colSpan={2} className="font-medium">
                     <FormField
-                      control={form.control}
+                      control={formLogbook.control}
                       name="sesuaiKuliah"
                       render={({ field }) => (
                         <FormItem>
@@ -582,97 +678,98 @@ function RouteContent() {
                     />
                   </TableCell>
                 </TableRow>
-                {sesuaiKuliah && (
-                  <TableRow>
-                    <TableCell className="w-1/4 font-medium">
-                      Pilih Matakuliah
-                    </TableCell>
-                    <TableCell className="w-3/4">
-                      <FormField
-                        control={form.control}
-                        name="matakuliah"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className="w-full justify-between"
-                                  >
-                                    {formDetail.listMatkul.find(
-                                      (e) => e.value === field.value
-                                    )?.text ?? "Pilih matakuliah..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  align="start"
-                                  className="w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+                <TableRow>
+                  <TableCell className="w-1/4 font-medium">
+                    Pilih Matakuliah
+                  </TableCell>
+                  <TableCell className="w-3/4">
+                    <FormField
+                      control={formLogbook.control}
+                      name="matakuliah"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  disabled={!sesuaiKuliah}
+                                  className="w-full justify-between"
                                 >
-                                  <Command
-                                    filter={(value, search, keywords = []) => {
-                                      const extendValue =
-                                        value + " " + keywords.join(" ");
-                                      if (
-                                        extendValue
-                                          .toLowerCase()
-                                          .includes(search.toLowerCase())
-                                      ) {
-                                        return 1;
-                                      }
-                                      return 0;
-                                    }}
-                                  >
-                                    <CommandInput placeholder="Search..." />
-                                    <CommandList>
-                                      <CommandEmpty>
-                                        Matakuliah tidak ditemukan
-                                      </CommandEmpty>
-                                      <CommandGroup>
-                                        {formDetail.listMatkul.map(
-                                          ({ text, value }) => (
-                                            <CommandItem
-                                              key={value}
-                                              value={value.toString()}
-                                              keywords={[text]}
-                                              onSelect={(currentValue) => {
-                                                form.setValue(
-                                                  "matakuliah",
-                                                  parseInt(currentValue)
-                                                );
-                                              }}
-                                            >
-                                              <Check
-                                                className={cn(
-                                                  "mr-2 h-4 w-4",
-                                                  field.value === value
-                                                    ? "opacity-100"
-                                                    : "opacity-0"
-                                                )}
-                                              />
-                                              {text}
-                                            </CommandItem>
-                                          )
-                                        )}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
+                                  {formDetail.listMatkul.find(
+                                    (e) => e.value === field.value
+                                  )?.text ?? "Pilih matakuliah..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                align="start"
+                                className="w-full min-w-[var(--radix-popper-anchor-width)] p-0"
+                              >
+                                <Command
+                                  filter={(value, search, keywords = []) => {
+                                    const extendValue =
+                                      value + " " + keywords.join(" ");
+                                    if (
+                                      extendValue
+                                        .toLowerCase()
+                                        .includes(search.toLowerCase())
+                                    ) {
+                                      return 1;
+                                    }
+                                    return 0;
+                                  }}
+                                >
+                                  <CommandInput placeholder="Search..." />
+                                  <CommandList>
+                                    <CommandEmpty>
+                                      Matakuliah tidak ditemukan
+                                    </CommandEmpty>
+                                    <CommandGroup>
+                                      {formDetail.listMatkul.map(
+                                        ({ text, value }) => (
+                                          <CommandItem
+                                            key={value}
+                                            value={value.toString()}
+                                            keywords={[text]}
+                                            onSelect={(currentValue) => {
+                                              formLogbook.setValue(
+                                                "matakuliah",
+                                                parseInt(currentValue)
+                                              );
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                field.value === value
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                            {text}
+                                          </CommandItem>
+                                        )
+                                      )}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TableCell>
+                </TableRow>
                 <TableRow>
                   <TableCell colSpan={2}>
                     <div className="flex justify-end">
-                      <SubmitButton isLoading={isPending}>Save</SubmitButton>
+                      <SubmitButton isLoading={isPendingLogbook}>
+                        Save
+                      </SubmitButton>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -681,7 +778,97 @@ function RouteContent() {
           </form>
         </Form>
       </div>
+
       <Separator />
+
+      <div className="rounded-md border">
+        <Table>
+          <TableCell colSpan={2} className="font-semibold text-base">
+            Unggah File
+          </TableCell>
+          <TableRow>
+            <TableCell className="w-1/2">
+              Unggah File Progres Laporan Kerja Praktek (Min. 1x dalam seminggu)
+              dlm bentuk PDF (Max. 1 MB)
+            </TableCell>
+            <TableCell className="w-1/2">
+              <Form {...formUploadPdf}>
+                <form onSubmit={formUploadPdf.handleSubmit(onSubmitPdf)}>
+                  <FormField
+                    control={formUploadPdf.control}
+                    name="file"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex justify-between gap-2">
+                            <Input
+                              id="picture"
+                              type="file"
+                              onChange={(e) =>
+                                field.onChange(e.target.files?.[0])
+                              }
+                              accept="application/pdf"
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                            <SubmitButton isLoading={isPendingPdf}>
+                              Upload
+                            </SubmitButton>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className="w-1/2">
+              Unggah Foto Kegiatan Kerja Praktek dlm bentuk JPG/JPEG (Max. 500
+              Kb)
+            </TableCell>
+            <TableCell className="w-1/2">
+              <Form {...formUploadImage}>
+                <form onSubmit={formUploadImage.handleSubmit(onSubmitImage)}>
+                  <FormField
+                    control={formUploadImage.control}
+                    name="file"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex justify-between gap-2">
+                            <Input
+                              id="picture"
+                              type="file"
+                              onChange={(e) =>
+                                field.onChange(e.target.files?.[0])
+                              }
+                              accept="image/*"
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                            <SubmitButton isLoading={isPendingImage}>
+                              Upload
+                            </SubmitButton>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </TableCell>
+          </TableRow>
+        </Table>
+      </div>
+
+      <Separator />
+
       <div className="space-y-3">
         <table>
           <tbody className="text-sm sm:text-base">
@@ -696,6 +883,33 @@ function RouteContent() {
                 Catatan Pembimbing Perusahaan pada minggu ke-{searchParams.week}
               </td>
               <td className="p-2 w-3/4">{catatanPerusahaan}</td>
+            </tr>
+            <tr>
+              <td className="p-2">Minggu</td>
+              <td className="p-2">
+                <Select
+                  defaultValue={searchParams.week.toString()}
+                  onValueChange={(val) => {
+                    navigate({
+                      search: (prev) => ({ ...prev, week: parseInt(val) }),
+                      replace: true,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Pilih semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {minggu.map((val) => (
+                        <SelectItem value={val.toString()} key={val}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </td>
             </tr>
           </tbody>
         </table>

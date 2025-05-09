@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_user/academic/frs-online-mbkm")({
   }) => {
     queryClient.prefetchQuery(
       queryApi.queryOptions("get", "/api/v1/academic/frs", {
-        params: { query: { semester, year } },
+        params: { query: { semester, tahun: year } },
         signal: abortController.signal,
       })
     );
@@ -94,7 +94,7 @@ function RouteContent() {
     },
   } = queryApi.useSuspenseQuery("get", "/api/v1/academic/frs", {
     params: {
-      query: { semester: searchParams.semester, year: searchParams.year },
+      query: { semester: searchParams.semester, tahun: searchParams.year },
     },
   });
 

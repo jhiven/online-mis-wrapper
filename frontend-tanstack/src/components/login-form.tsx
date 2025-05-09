@@ -27,7 +27,7 @@ export function LoginForm({
   const navigate = useNavigate({ from: "/login" });
   const { mutate, error, isPending } = queryApi.useMutation(
     "post",
-    "/api/v1/login",
+    "/api/v1/auth/login",
     {
       onSuccess: () => {
         navigate({ to: "/home", replace: true });

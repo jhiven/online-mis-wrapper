@@ -1,5 +1,5 @@
 export interface paths {
-    "/api/v1/login": {
+    "/api/v1/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -56,7 +56,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/logout": {
+    "/api/v1/auth/logout": {
         parameters: {
             query?: never;
             header?: never;
@@ -109,24 +109,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/academic/absen": {
+    "/api/v1/academic/logbook/upload_screenshot": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: {
+        get?: never;
+        put?: never;
+        post: {
             parameters: {
-                query: {
-                    semester: number;
-                    year: number;
-                };
+                query?: never;
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "multipart/form-data": components["schemas"]["UploadFileRequest"];
+                };
+            };
             responses: {
                 /** @description Success Response */
                 200: {
@@ -134,7 +137,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["SuccessApiResponseBody_for_AbsenResponse"];
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_Null"];
                     };
                 };
                 /** @description Validation Error */
@@ -157,32 +160,33 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/academic/frs": {
+    "/api/v1/academic/logbook/upload_pdf": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: {
+        get?: never;
+        put?: never;
+        post: {
             parameters: {
-                query: {
-                    semester: number;
-                    year: number;
-                };
+                query?: never;
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "multipart/form-data": components["schemas"]["UploadFileRequest"];
+                };
+            };
             responses: {
                 /** @description Success Response */
                 200: {
@@ -190,7 +194,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["SuccessApiResponseBody_for_FrsResponse"];
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_Null"];
                     };
                 };
                 /** @description Validation Error */
@@ -213,120 +217,6 @@ export interface paths {
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/academic/jadwal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query: {
-                    semester: number;
-                    year: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Success Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["SuccessApiResponseBody_for_JadwalKuliahResponse"];
-                    };
-                };
-                /** @description Validation Error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorApiResponseBody"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/academic/nilai": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query: {
-                    semester: number;
-                    year: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Success Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["SuccessApiResponseBody_for_NilaiSemesterResponse"];
-                    };
-                };
-                /** @description Validation Error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorApiResponseBody"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -345,7 +235,7 @@ export interface paths {
                 query: {
                     minggu: number;
                     semester: number;
-                    year: number;
+                    tahun: number;
                 };
                 header?: never;
                 path?: never;
@@ -392,7 +282,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["LobookCreateRequest"];
+                    "application/json": components["schemas"]["LogbookCreateRequest"];
                 };
             };
             responses: {
@@ -490,6 +380,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/academic/absen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    semester: number;
+                    tahun: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_AbsenResponse"];
+                    };
+                };
+                /** @description Validation Error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorApiResponseBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/academic/frs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    semester: number;
+                    tahun: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_FrsResponse"];
+                    };
+                };
+                /** @description Validation Error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorApiResponseBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/academic/jadwal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    semester: number;
+                    tahun: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_JadwalKuliahResponse"];
+                    };
+                };
+                /** @description Validation Error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorApiResponseBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/academic/nilai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    semester: number;
+                    tahun: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuccessApiResponseBody_for_NilaiSemesterResponse"];
+                    };
+                };
+                /** @description Validation Error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorValidationApiResponseBody"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorApiResponseBody"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invalidate-cache": {
         parameters: {
             query?: never;
@@ -549,8 +663,14 @@ export interface components {
     schemas: {
         AbsenResponse: {
             semester: number[];
-            table: components["schemas"]["Table"][];
+            table: components["schemas"]["AbsenTableResponse"][];
             year: number[];
+        };
+        AbsenTableResponse: {
+            kehadiran: string;
+            kode: string;
+            mataKuliah: string;
+            minggu: string[];
         };
         DateRange: {
             from: string;
@@ -570,9 +690,19 @@ export interface components {
             ip: components["schemas"]["IP"];
             semester: number[];
             sks: components["schemas"]["SKS"];
-            table: components["schemas"]["Table2"][];
+            table: components["schemas"]["FrsTableResponse"][];
             tanggalPenting: components["schemas"]["TanggalPenting"];
             year: number[];
+        };
+        FrsTableResponse: {
+            disetujui: string;
+            dosen: string;
+            group: string;
+            id: string;
+            kelas: string;
+            kode: string;
+            mataKuliah: components["schemas"]["MataKuliah"];
+            sks: string;
         };
         IP: {
             /** Format: float */
@@ -584,10 +714,27 @@ export interface components {
             jamIstirahat: string;
             kelas: string;
             semester: number[];
-            table: components["schemas"]["Table3"];
+            table: components["schemas"]["JadwalKuliahTable"];
             year: number[];
         };
-        LobookCreateRequest: {
+        JadwalKuliahTable: {
+            jumat: components["schemas"]["Matakuliah"][];
+            kamis: components["schemas"]["Matakuliah"][];
+            minggu: components["schemas"]["Matakuliah"][];
+            rabu: components["schemas"]["Matakuliah"][];
+            sabtu: components["schemas"]["Matakuliah"][];
+            selasa: components["schemas"]["Matakuliah"][];
+            senin: components["schemas"]["Matakuliah"][];
+        };
+        LobookDetailRequest: {
+            /** Format: uint8 */
+            minggu: number;
+            /** Format: uint8 */
+            semester: number;
+            /** Format: uint16 */
+            tahun: number;
+        };
+        LogbookCreateRequest: {
             jamMulai: string;
             jamSelesai: string;
             kegiatan: string;
@@ -603,14 +750,6 @@ export interface components {
             /** Format: uint16 */
             tahun: number;
             tanggal: string;
-        };
-        LobookDetailRequest: {
-            /** Format: uint8 */
-            minggu: number;
-            /** Format: uint8 */
-            semester: number;
-            /** Format: uint16 */
-            year: number;
         };
         LogbookDeleteBodyRequest: {
             /** Format: uint8 */
@@ -650,7 +789,7 @@ export interface components {
         LogbookTableResponse: {
             deletable: boolean;
             fileFoto: string;
-            fileProgres: string;
+            fileProgres?: string | null;
             id: string;
             jamMulai: string;
             jamSelesai: string;
@@ -687,8 +826,13 @@ export interface components {
         };
         NilaiSemesterResponse: {
             semester: number[];
-            table: components["schemas"]["Table4"][];
+            table: components["schemas"]["NilaiSemesterTable"][];
             year: number[];
+        };
+        NilaiSemesterTable: {
+            kode: string;
+            mataKuliah: string;
+            value: string;
         };
         SKS: {
             /** Format: int32 */
@@ -720,55 +864,41 @@ export interface components {
             data: components["schemas"]["NilaiSemesterResponse"];
             success: boolean;
         };
+        SuccessApiResponseBody_for_Null: {
+            data: null;
+            success: boolean;
+        };
         SuccessApiResponseBody_for_String: {
             data: string;
             success: boolean;
-        };
-        Table: {
-            kehadiran: string;
-            kode: string;
-            mataKuliah: string;
-            minggu: string[];
-        };
-        Table2: {
-            disetujui: string;
-            dosen: string;
-            group: string;
-            id: string;
-            kelas: string;
-            kode: string;
-            mataKuliah: components["schemas"]["MataKuliah"];
-            sks: string;
-        };
-        Table3: {
-            jumat: components["schemas"]["Matakuliah"][];
-            kamis: components["schemas"]["Matakuliah"][];
-            minggu: components["schemas"]["Matakuliah"][];
-            rabu: components["schemas"]["Matakuliah"][];
-            sabtu: components["schemas"]["Matakuliah"][];
-            selasa: components["schemas"]["Matakuliah"][];
-            senin: components["schemas"]["Matakuliah"][];
-        };
-        Table4: {
-            kode: string;
-            mataKuliah: string;
-            value: string;
         };
         TanggalPenting: {
             drop: components["schemas"]["DateRange"];
             pengisian: components["schemas"]["DateRange"];
             perubahan: components["schemas"]["DateRange"];
         };
+        UploadFileRequest: {
+            /** Format: binary */
+            file?: Blob;
+            kpDaftar: string;
+            mahasiswa: string;
+            /** Format: uint8 */
+            minggu: number;
+            /** Format: uint8 */
+            semester: number;
+            /** Format: uint16 */
+            tahun: number;
+            tanggal: string;
+        };
         ValidationErrorCause: {
             field: string;
-            message: string;
-            receivedValue: string;
+            message: string[];
         };
         YearSemesterRequest: {
             /** Format: uint8 */
             semester: number;
             /** Format: uint16 */
-            year: number;
+            tahun: number;
         };
     };
     responses: never;

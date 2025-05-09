@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_user/academic/jadwal-kuliah")({
   }) => {
     queryClient.prefetchQuery(
       queryApi.queryOptions("get", "/api/v1/academic/jadwal", {
-        params: { query: { semester, year } },
+        params: { query: { semester, tahun: year } },
         signal: abortController.signal,
       })
     );
@@ -40,7 +40,7 @@ function RouteContent() {
     },
   } = queryApi.useSuspenseQuery("get", "/api/v1/academic/jadwal", {
     params: {
-      query: { semester: searchParams.semester, year: searchParams.year },
+      query: { semester: searchParams.semester, tahun: searchParams.year },
     },
   });
 
